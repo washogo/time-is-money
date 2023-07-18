@@ -14,3 +14,6 @@ https://zenn.dev/meijin/articles/bulletproof-react-is-best-architecture
 https://zenn.dev/t_keshi/articles/bulletproof-react-2022
 - Container/Presentationalパターン
 https://zenn.dev/kazu777/articles/9460c75b7cd8d1
+
+## Figma
+https://www.figma.com/file/6IQ4n6fnEwKR0V7PH3phQu/Time-is-Money?type=design&node-id=0-1&mode=design&t=F07idVygJw2cD3GB-0
