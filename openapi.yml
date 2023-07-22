@@ -1,0 +1,479 @@
+openapi: 3.0.3
+info:
+  title: Time is Money
+  description: time-is-moneyのAPI一覧
+  version: 0.0.0
+servers:
+  - url: localhost:8080
+    description: ローカル環境
+tags:
+  - name: Auth
+    description: 認証
+  - name: User
+    description: ユーザー情報
+  - name: Task
+    description: 案件情報
+
+paths:
+  /signup:
+    post:
+      tags:
+        - Auth
+      description: |
+        # ユーザー新規作成API
+        ## 概要
+          - 「ユーザー名」「メールアドレス」「パスワード」で新規登録をする
+          - メールアドレスが既に登録されている場合は、登録不可とする
+          - パスワードはハッシュ値に変換したものをDBに登録する
+
+          Googleアカウントでも登録できるようにする？
+
+        ---
+
+        ## 起動トリガー
+          - 新規登録画面で「登録する」ボタン押下時のAPIコールにより起動
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#components/schemas/SignupReq"
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignupRes"
+  /login:
+    post:
+      tags:
+        - Auth
+      description: |
+        # ログインAPI
+        ## 概要
+          - 「メールアドレス」「パスワード」で認証し、ログインをする
+          - パスワードはハッシュ値に変換したものをDBと比較し照合する
+
+          Googleアカウントでもログインできるようにする？
+
+        ---
+
+        ## 起動トリガー
+          - ログイン画面で「ログインする」ボタン押下時のAPIコールにより起動
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginReq"
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginRes"
+  # /logout:
+  #   get:
+  #     tags:
+  #       - Auth
+  #     description: |
+  #       # ログインAPI
+  #       ## 概要
+  #         知らん
+
+  #       ---
+
+  #       ## 起動トリガー
+  #         - 知らん
+  #     responses:
+  #       "200":
+  #         description: ok
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: "#/components/schemas/200"
+  /user:
+    get:
+      description: |
+        # ユーザー情報表示API
+        ## 概要
+          - 「ユーザー名」「メールアドレス」を返す
+
+        ---
+
+        ## 起動トリガー
+          - ユーザー管理画面への遷移時のAPIコールにより起動
+      tags:
+        - User
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetUserRes"
+    patch:
+      tags:
+        - User
+      description: |
+        # ユーザー情報更新API
+        ## 概要
+          - 「ユーザー名」「メールアドレス」の一方または両方を更新する
+          - メールアドレスが既に登録されている場合は、変更不可とする
+
+        ---
+
+        ## 起動トリガー
+          - ユーザー管理画面で「変更する」ボタン押下時のAPIコールにより起動
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatchUserReq"
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatchUserRes"
+  /companies:
+    get:
+      tags:
+        - Task
+      description: |
+        # 企業名一覧API
+        ## 概要
+          - 企業名一覧を返す
+
+        ---
+
+        ## 起動トリガー
+          - 一覧画面への遷移時のAPIコールにより起動
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetCompaniesRes"
+  /task:
+    get:
+      tags:
+        - Task
+      description: |
+        # タスク一覧表示API
+        ## 概要
+          - 期間の開始のみが指定された場合
+            - 開始日付から現在までの、すべての企業のすべてタスクを返す
+          - 期間の終了のみが指定された場合
+            - 終了日付までの、すべての企業のすべてのタスクを返す
+          - 期間の開始・終了が指定された場合
+            - 開始日付から終了日付までの、すべての企業のすべてのタスクを返す
+          - 企業名が指定された場合
+            - 指定された企業のすべてのタスクを返す
+
+        ---
+
+        ## 起動トリガー
+          - 一覧画面で期間指定時のAPIコールによる起動
+          - 一覧画面で企業名指定時のAPIコールによる起動
+          - マネー計算画面で期間指定時のAPIコールによる起動
+          - マネー計算画面で企業名指定時のAPIコールによる起動
+      parameters:
+        - name: start_at
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 期間開始日付
+          example: "2023-01-01"
+        - name: end_at
+          in: query
+          schema:
+            type: string
+            format: date
+          description: 期間終了日付
+          example: "2023-12-31"
+        - name: company_id
+          in: query
+          schema:
+            type: integer
+          description: 企業ID
+          example: 1
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetTaskRes"
+    post:
+      tags:
+        - Task
+      description: |
+        # タスク登録API
+        ## 概要
+          - タスクに必要事項を入力して登録する
+          - 内容や実働日時の重複チェックは行わない
+
+        ---
+
+        ## 起動トリガー
+          - 入力画面で「登録する」ボタン押下時のAPIコールにより起動
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#components/schemas/PostTaskReq"
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostTaskRes"
+    # TODO: 何を更新できる項目にするか不明、画面もないためコメントアウト
+    # patch:
+    #   tags:
+    #     - Task
+    #   description: |
+    #     # タスク修正API
+    #     ## 概要
+    #       - 登録したタスクを修正して更新する
+
+    #     ---
+
+    #     ## 起動トリガー
+    #       - タスク修正画面で「変更する」ボタン押下時のAPIコールにより起動
+    #   requestBody:
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: "#/components/schemas/PatchTaskReq"
+    #   responses:
+    #     "200":
+    #       description: ok
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/PatchTaskRes"
+    # delete:
+    #   tags:
+    #     - Task
+    #   description: |
+    #     # タスク削除API
+    #     ## 概要
+    #       - 登録したタスクを削除する
+
+    #     ---
+
+    #     ## 起動トリガー
+    #       - タスク修正画面で「削除する」ボタン押下時のAPIコールにより起動
+    #   requestBody:
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: "#/components/schemas/DeleteTaskReq"
+    #   responses:
+    #     "200":
+    #       description: ok
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/DeleteTaskRes"
+  /task/mst:
+    post:
+      tags:
+        - Task
+      description: |
+        # マスターデータ登録API
+        ## 概要
+          - 「ジャンル」「社名」の入力された一方または両方を登録する
+          - ジャンルや企業名の重複チェックは行わない
+
+        ---
+
+        ## 起動トリガー
+          - マスターデータ管理画面で「追加する」ボタン押下時のAPIコールにより起動
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostTaskMstReq"
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostTaskMstRes"
+    # patch:
+    #   tags:
+    #     - Task
+    #   requestBody:
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: "#/components/schemas/PatchTaskMstReq"
+    #   responses:
+    #     "200":
+    #       description: ok
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/PatchTaskMstRes"
+    # delete:
+    #   tags:
+    #     - Task
+    #   requestBody:
+    #     content:
+    #       application/json:
+    #         schema:
+    #           $ref: "#/components/schemas/DeleteTaskMstReq"
+    #   responses:
+    #     "200":
+    #       description: ok
+    #       content:
+    #         application/json:
+    #           schema:
+    #             $ref: "#/components/schemas/DeleteTaskMstRes"
+
+
+components:
+  schemas:
+    "200":
+      type: object
+      properties:
+        message:
+          type: string
+          description: レスポンステキスト
+          example: ok
+    UserName:
+      type: string
+      description: ユーザー名
+      example: tanjiro
+    Email:
+      type: string
+      format: email
+      description: メールアドレス
+      example: tanjiro@mail.com
+    Password:
+      type: string
+      format: password
+      description: パスワード
+      example: kamado-tanjiro
+    Genre:
+      type: string
+      description: ジャンル
+      example: "鬼滅の刃"
+    Title:
+      type: string
+      description: タイトル
+      example: "上弦の壱:黒死牟 討伐"
+    Company:
+      type: object
+      properties:
+        company_id:
+          type: integer
+          description: 企業ID
+          example: 1
+        company_name:
+          type: string
+          description: 企業
+          example: 鬼殺隊株式会社
+    WorkedHours:
+      type: object
+      properties:
+        start_at:
+          type: string
+          format: date-time
+          description: 開始日時
+          example: "2023-01-01 14:00"
+        end_at:
+          type: string
+          format: date-time
+          description: 終了日時
+          example: "2023-01-01 16:00"
+    Wage:
+      type: integer
+      description: 企業ID
+      example: 10000
+    UserInfo:
+      type: object
+      properties:
+        user_name:
+          $ref: "#components/schemas/UserName"
+        email:
+          $ref: "#components/schemas/Email"
+    TaskInfo:
+      type: object
+      properties:
+        title:
+          $ref: "#components/schemas/Title"
+        company:
+          $ref: "#components/schemas/Company"
+        genre:
+          $ref: "#components/schemas/Genre"
+        worked_hours:
+          $ref: "#components/schemas/WorkedHours"
+        wage:
+          $ref: "#components/schemas/Wage"
+    Detail:
+      type: string
+      description: タスク詳細
+      example: "上弦の壱である黒死牟を倒して帰還する"
+
+    SignupReq:
+      $ref: "#components/schemas/UserInfo"
+      properties:
+        password:
+          $ref: "#components/schemas/Password"
+    SignupRes:
+      $ref: "#components/schemas/200"
+    LoginReq:
+      $ref: "#components/schemas/UserInfo"
+    LoginRes:
+      $ref: "#components/schemas/200"
+    GetUserRes:
+      $ref: "#components/schemas/UserInfo"
+    PatchUserReq:
+      $ref: "#components/schemas/UserInfo"
+    PatchUserRes:
+      $ref: "#components/schemas/200"
+    GetCompaniesRes:
+      type: object
+      properties:
+        data:
+          type: array
+          description: 企業一覧
+          items:
+            $ref: "#components/schemas/Company"
+    GetTaskRes:
+      type: object
+      properties:
+        data:
+          type: array
+          description: タスク一覧
+          items:
+            $ref: "#components/schemas/TaskInfo"
+    PostTaskReq:
+      type: object
+      allOf:
+        - $ref: "#components/schemas/TaskInfo"
+      properties:
+        detail:
+          $ref: "#components/schemas/Detail"
+    PostTaskRes:
+      $ref: "#components/schemas/200"
+    PostTaskMstReq:
+      type: object
+      properties:
+        genre:
+          $ref: "#components/schemas/Genre"
+        company_name:
+          type: string
+          description: 企業
+          example: 鬼殺隊株式会社
+    PostTaskMstRes:
+      $ref: "#components/schemas/200"
