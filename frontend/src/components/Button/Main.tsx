@@ -4,7 +4,7 @@ type Props = {
   text: string;
 };
 
-export const Main = (props: Props) => {
+export const MainButton = (props: Props) => {
   const { text } = props;
   return <SButton>{text}</SButton>;
 };
